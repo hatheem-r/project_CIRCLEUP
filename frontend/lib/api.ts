@@ -76,6 +76,7 @@ export const getSuggestions = () =>
     method: "POST",
   });
 
+/** `start` and `end` are HH:MM; the proxy is never told which day. */
 export const findPlaces = (location: string, start: string, end: string) => {
   const url = new URL("/places", PLACES_API);
   url.searchParams.set("location", location);

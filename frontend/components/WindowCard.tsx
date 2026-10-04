@@ -48,8 +48,8 @@ export default function WindowCard({
     try {
       const { places } = await findPlaces(
         location.trim(),
-        suggestion.start,
-        suggestion.end,
+        clock(suggestion.start),
+        clock(suggestion.end),
       );
       if (places.length === 0) {
         setNote(`Nothing came back for “${location.trim()}”.`);

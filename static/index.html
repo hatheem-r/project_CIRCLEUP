@@ -593,8 +593,9 @@ async function findPlaces(card, suggestion, button) {
   try {
     const url = new URL("/places", PLACES_SERVICE);
     url.searchParams.set("location", where);
-    url.searchParams.set("start", suggestion.start);
-    url.searchParams.set("end", suggestion.end);
+    // the places service takes the time of day only, never the date
+    url.searchParams.set("start", clockOf(suggestion.start));
+    url.searchParams.set("end", clockOf(suggestion.end));
 
     const { places } = await call(url.toString());
     if (!places.length) {

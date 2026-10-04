@@ -6,12 +6,10 @@ deadline or anything else off the timetable is rejected rather than forwarded.
 Of what it does accept, only the location is ever sent on to SerpAPI.
 
     uvicorn app:app --reload --port 8001
-    curl "http://127.0.0.1:8001/places?location=cafes+in+Colombo\
-&start=2026-10-10T19:00:00%2B05:30&end=2026-10-10T22:00:00%2B05:30"
+    curl "http://127.0.0.1:8001/places?location=cafes+in+Colombo&start=19:00&end=22:00"
 """
 
 import os
-from datetime import datetime
 from typing import Annotated, Any
 from urllib.parse import quote_plus
 
@@ -19,7 +17,7 @@ import httpx
 from dotenv import load_dotenv
 from fastapi import Depends, FastAPI, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, StringConstraints
 
 load_dotenv()
 
@@ -27,13 +25,27 @@ SERPAPI_URL = "https://serpapi.com/search.json"
 MAX_PLACES = 10
 TIMEOUT = 20.0
 
+# Comma separated, e.g. "https://circleup.onrender.com,http://localhost:3000".
+# The fallback only covers local development; a deployed frontend must be named
+# explicitly, so forgetting to set this fails closed rather than opening up.
+DEFAULT_ORIGINS = (
+    "http://localhost:3000,http://127.0.0.1:3000,"
+    "http://localhost:8000,http://127.0.0.1:8000"
+)
+ALLOWED_ORIGINS = [
+    origin.strip()
+    for origin in os.getenv("ALLOWED_ORIGINS", DEFAULT_ORIGINS).split(",")
+    if origin.strip()
+]
+
+# the service is told the time of day and nothing more -- not even which day
+TimeOfDay = Annotated[str, StringConstraints(pattern=r"^\d{2}:\d{2}$")]
+
 app = FastAPI(title="CircleUp places proxy")
 
-# any localhost port while the page is served locally; swap this one line for
-# allow_origins=["https://<your-app>.onrender.com"] once that is deployed
 app.add_middleware(
     CORSMiddleware,
-    allow_origin_regex=r"http://(localhost|127\.0\.0\.1)(:\d+)?",
+    allow_origins=ALLOWED_ORIGINS,
     allow_credentials=False,
     allow_methods=["GET"],
     allow_headers=["*"],
@@ -64,14 +76,8 @@ class PlacesQuery(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     location: str = Field(min_length=1, max_length=120)
-    start: datetime
-    end: datetime
-
-    @model_validator(mode="after")
-    def _ordered(self) -> "PlacesQuery":
-        if self.end <= self.start:
-            raise ValueError("end must be after start")
-        return self
+    start: TimeOfDay
+    end: TimeOfDay
 
 
 class Place(BaseModel):

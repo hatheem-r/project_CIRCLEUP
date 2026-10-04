@@ -9,11 +9,13 @@ export const dayLabel = (iso: string) =>
     timeZone: TZ,
   });
 
+/** "08:00" / "22:00". h23 rather than hour12:false, which can yield "24:00"
+ *  on some engines -- this value is also sent to the places service. */
 export const clock = (iso: string) =>
   new Date(iso).toLocaleTimeString("en-GB", {
     hour: "2-digit",
     minute: "2-digit",
-    hour12: false,
+    hourCycle: "h23",
     timeZone: TZ,
   });
 
