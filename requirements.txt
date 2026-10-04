@@ -1,0 +1,9 @@
+fastapi
+icalendar
+ollama
+pydantic
+pymupdf
+python-dateutil
+python-dotenv
+python-multipart
+uvicorn[standard]
