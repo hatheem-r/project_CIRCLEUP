@@ -1,7 +1,8 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useState } from "react";
 import DeadlineList from "@/components/DeadlineList";
+import LocationBar from "@/components/LocationBar";
 import StepIndicator, { STEPS } from "@/components/StepIndicator";
 import UploadPanel from "@/components/UploadPanel";
 import WindowCard from "@/components/WindowCard";
@@ -23,7 +24,6 @@ export default function Page() {
   );
   const [suggestions, setSuggestions] = useState<Suggestion[] | null>(null);
   const [deadlines, setDeadlines] = useState<Deadline[] | null>(null);
-  const locationRef = useRef<HTMLDivElement>(null);
 
   const busy = step >= 0 && step < STEPS.length;
 
@@ -76,19 +76,9 @@ export default function Page() {
         </p>
       </header>
 
-      <div ref={locationRef}>
-        <UploadPanel
-          file={file}
-          onFile={setFile}
-          location={location}
-          onLocation={setLocation}
-          onStart={run}
-          busy={busy}
-        />
-      </div>
+      <UploadPanel file={file} onFile={setFile} onStart={run} busy={busy} />
 
-      {/* keyed by step so the elapsed counter restarts with each one */}
-      {busy && <StepIndicator key={step} current={step} />}
+      {busy && <StepIndicator current={step} />}
 
       {error && (
         <div className="mt-5 rounded-xl border border-avoid/30 bg-avoid/10 px-4.5 py-4 text-sm text-avoid">
@@ -113,18 +103,24 @@ export default function Page() {
               Nothing of 2 hours or more came back for the next 7 days.
             </p>
           ) : (
-            <div className="flex flex-col gap-3">
-              {suggestions.map((s) => (
-                <WindowCard
-                  key={`${s.start}-${s.end}`}
-                  suggestion={s}
-                  location={location}
-                  onNeedLocation={() =>
-                    document.getElementById("location")?.focus()
-                  }
-                />
-              ))}
-            </div>
+            <>
+              {/* only worth asking once there is somewhere it could apply */}
+              {suggestions.some((s) => s.verdict !== "avoid") && (
+                <LocationBar location={location} onLocation={setLocation} />
+              )}
+              <div className="flex flex-col gap-3">
+                {suggestions.map((s) => (
+                  <WindowCard
+                    key={`${s.start}-${s.end}`}
+                    suggestion={s}
+                    location={location}
+                    onNeedLocation={() =>
+                      document.getElementById("location")?.focus()
+                    }
+                  />
+                ))}
+              </div>
+            </>
           )}
         </section>
       )}

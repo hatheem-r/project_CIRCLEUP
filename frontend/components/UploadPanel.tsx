@@ -5,20 +5,11 @@ import { useRef, useState } from "react";
 interface Props {
   file: File | null;
   onFile: (file: File | null) => void;
-  location: string;
-  onLocation: (value: string) => void;
   onStart: () => void;
   busy: boolean;
 }
 
-export default function UploadPanel({
-  file,
-  onFile,
-  location,
-  onLocation,
-  onStart,
-  busy,
-}: Props) {
+export default function UploadPanel({ file, onFile, onStart, busy }: Props) {
   const input = useRef<HTMLInputElement>(null);
   const [over, setOver] = useState(false);
 
@@ -68,21 +59,6 @@ export default function UploadPanel({
           </span>
         </p>
       )}
-
-      <label className="mt-5 block" htmlFor="location">
-        <span className="mb-2 block text-[13px] text-muted">
-          Where are you looking for places?
-        </span>
-        <input
-          id="location"
-          type="text"
-          value={location}
-          onChange={(e) => onLocation(e.target.value)}
-          placeholder="cafes in Colombo 7"
-          autoComplete="off"
-          className="w-full rounded-lg border border-line bg-lift px-3.5 py-3 text-sm outline-none placeholder:text-faint focus:border-accent"
-        />
-      </label>
 
       <button
         type="button"
